@@ -138,6 +138,7 @@ export default function App() {
   const [pageCount, setPageCount] = useState(0)
   const canvasRef = useRef(null)
   const overlayRef = useRef(null)
+  const fileInputRef = useRef(null)
   const renderScale = useRef(1.5)
 
   // ---- Save API key ----
@@ -375,19 +376,28 @@ export default function App() {
             {/* PDF Upload */}
             <div style={{ marginBottom: 20 }}>
               <label style={S.label()}>Upload PDF</label>
-              <label style={{
-                display: 'block', border: '2px dashed #1a2535', borderRadius: 8,
-                padding: 24, textAlign: 'center', cursor: 'pointer',
-                transition: 'border-color 0.2s',
-              }}>
-                <input type="file" accept=".pdf" style={{ display: 'none' }}
-                  onChange={e => e.target.files[0] && handlePDFUpload(e.target.files[0])} />
+              <input ref={fileInputRef} type="file" accept=".pdf"
+                style={{ display: 'none' }}
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  if (file) handlePDFUpload(file)
+                }} />
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  border: '2px dashed #1a2535', borderRadius: 8,
+                  padding: 24, textAlign: 'center', cursor: 'pointer',
+                  transition: 'border-color 0.2s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#4da3e8'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#1a2535'}
+              >
                 {pdfData ? (
                   <span style={{ fontSize: 12, color: '#4dd868' }}>{pdfName}</span>
                 ) : (
-                  <span style={{ fontSize: 12, color: '#5a6578' }}>Drop or click to upload PDF</span>
+                  <span style={{ fontSize: 12, color: '#5a6578' }}>Click to upload PDF</span>
                 )}
-              </label>
+              </div>
             </div>
 
             {/* Quick schema if none loaded */}
