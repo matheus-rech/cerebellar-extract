@@ -1,3 +1,11 @@
+#!/bin/bash
+# Fixes: "The object can not be cloned" error
+# Run from cerebellar-extract folder
+
+set -e
+echo "Patching pdfEngine.js..."
+
+cat > src/lib/pdfEngine.js << 'EOF'
 import * as pdfjsLib from 'pdfjs-dist'
 
 // Disable Web Worker -- avoids "object can not be cloned" error on GitHub Pages.
@@ -103,3 +111,15 @@ export async function renderPage(source, pageNum, canvas, scale = 1.5) {
   await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise
   return { width: vp.width, height: vp.height, scale }
 }
+EOF
+
+echo "Building..."
+npm run build 2>&1 | grep -E "built in|error"
+
+echo "Committing and pushing..."
+git add -A
+git commit -m "fix: disable PDF.js worker to fix cloning error"
+git push
+
+echo ""
+echo "Done. Wait ~1 min for redeploy."
