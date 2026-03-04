@@ -121,7 +121,7 @@ export default function App() {
   const [apiKey, setApiKey] = useState(apiKeyStore.get())
 
   // PDF state
-  const [pdfData, setPdfData] = useState(null)        // ArrayBuffer
+  const [pdfData, setPdfData] = useState(null)        // Uint8Array
   const [pdfName, setPdfName] = useState('')
   const [blocks, setBlocks] = useState([])
   const [textForLLM, setTextForLLM] = useState('')
@@ -146,21 +146,24 @@ export default function App() {
 
   // ---- PDF Loading ----
   const handlePDFUpload = useCallback(async (file) => {
-    const buffer = await file.arrayBuffer()
-    setPdfData(buffer)
-    setPdfName(file.name)
-    log(`Loaded: ${file.name} (${(file.size / 1024).toFixed(0)} KB)`)
-
-    log('Extracting text blocks with coordinates...')
     try {
-      const result = await extractPDFBlocks(buffer)
+      const buffer = await file.arrayBuffer()
+      // Store as Uint8Array to prevent ArrayBuffer detachment issues
+      const bytes = new Uint8Array(buffer)
+      setPdfData(bytes)
+      setPdfName(file.name)
+      log(`Loaded: ${file.name} (${(file.size / 1024).toFixed(0)} KB)`)
+
+      log('Extracting text blocks with coordinates...')
+      const result = await extractPDFBlocks(bytes)
       setBlocks(result.blocks)
       setTextForLLM(result.textForLLM)
       setPageCount(result.pageCount)
       setCurrentPage(1)
       log(`Found ${result.blocks.length} blocks across ${result.pageCount} pages`)
     } catch (e) {
-      log(`Error extracting blocks: ${e.message}`, 'error')
+      log(`Error: ${e.message}`, 'error')
+      console.error('[CE] PDF upload error:', e)
     }
   }, [])
 

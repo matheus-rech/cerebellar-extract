@@ -1,13 +1,13 @@
 {
   "name": "cerebellar-extract",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/copy-worker.js && vite build",
     "preview": "vite preview",
-    "deploy": "vite build && gh-pages -d dist"
+    "postinstall": "node scripts/copy-worker.js"
   },
   "dependencies": {
     "pdfjs-dist": "^4.9.155",
@@ -17,7 +17,6 @@
   "devDependencies": {
     "@types/react": "^18.3.12",
     "@vitejs/plugin-react": "^4.3.4",
-    "gh-pages": "^6.3.0",
     "vite": "^6.0.0"
   }
 }
