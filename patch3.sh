@@ -1,3 +1,8 @@
+#!/bin/bash
+set -e
+echo "Patching pdfEngine.js (worker via Vite URL import)..."
+
+cat > src/lib/pdfEngine.js << 'EOF'
 import * as pdfjsLib from 'pdfjs-dist'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
@@ -107,3 +112,44 @@ export async function renderPage(source, pageNum, canvas, scale = 1.5) {
   await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise
   return { width: vp.width, height: vp.height, scale }
 }
+EOF
+
+echo "Building..."
+
+# Also update vite.config.js to use pdf-lib chunk name
+cat > vite.config.js << 'VCEOF'
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  base: '/cerebellar-extract/',
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'pdf-lib': ['pdfjs-dist'],
+        },
+      },
+    },
+  },
+  optimizeDeps: {
+    include: ['pdfjs-dist'],
+  },
+})
+VCEOF
+
+BUILD=$(npm run build 2>&1)
+if echo "$BUILD" | grep -q "built in"; then
+  echo "$BUILD" | grep "built in"
+  echo "Pushing..."
+  git add -A
+  git commit -m "fix: proper PDF.js worker via Vite URL import"
+  git push
+  echo "Done. Wait ~1 min for redeploy."
+else
+  echo "$BUILD"
+  echo "Build failed."
+fi
