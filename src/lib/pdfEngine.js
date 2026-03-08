@@ -55,11 +55,16 @@ export async function extractPDFBlocks(source) {
   const blocks = []
   let idx = 0
   let textForLLM = ''
+  let totalTextItems = 0
 
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p)
     const vp = page.getViewport({ scale: 1.0 })
     const tc = await page.getTextContent()
+
+    // Count total text items across all pages
+    totalTextItems += tc.items.filter(i => i.str && i.str.trim()).length
+
     const grouped = groupIntoBlocks(tc.items, vp)
 
     for (const b of grouped) {
@@ -76,6 +81,11 @@ export async function extractPDFBlocks(source) {
       textForLLM += '[' + blockId + '] ' + text + '\n\n'
       idx++
     }
+  }
+
+  // Validate that the PDF has a text layer
+  if (totalTextItems === 0 && pdf.numPages > 0) {
+    throw new Error('PDF has no text layer. This PDF appears to be image-only or scanned. Please use a PDF with searchable text or perform OCR first.')
   }
 
   return { textForLLM, blocks, pageCount: pdf.numPages }
