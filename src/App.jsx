@@ -148,8 +148,9 @@ export default function App() {
   const handlePDFUpload = useCallback(async (file) => {
     try {
       const buffer = await file.arrayBuffer()
-      // Store as Uint8Array to prevent ArrayBuffer detachment issues
-      const bytes = new Uint8Array(buffer)
+      // Create a copy of the ArrayBuffer to prevent detachment issues
+      // This ensures the data remains accessible even if the original buffer is transferred
+      const bytes = new Uint8Array(buffer).slice()
       log(`Loaded: ${file.name} (${(file.size / 1024).toFixed(0)} KB)`)
 
       log('Extracting text blocks with coordinates...')
