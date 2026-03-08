@@ -172,6 +172,7 @@ export default function App() {
       setBlocks([])
       setTextForLLM('')
       setPageCount(0)
+      setCurrentPage(1)
     }
   }, [])
 
