@@ -150,12 +150,14 @@ export default function App() {
       const buffer = await file.arrayBuffer()
       // Store as Uint8Array to prevent ArrayBuffer detachment issues
       const bytes = new Uint8Array(buffer)
-      setPdfData(bytes)
-      setPdfName(file.name)
       log(`Loaded: ${file.name} (${(file.size / 1024).toFixed(0)} KB)`)
 
       log('Extracting text blocks with coordinates...')
       const result = await extractPDFBlocks(bytes)
+
+      // Only set PDF data if extraction succeeds
+      setPdfData(bytes)
+      setPdfName(file.name)
       setBlocks(result.blocks)
       setTextForLLM(result.textForLLM)
       setPageCount(result.pageCount)
@@ -164,6 +166,12 @@ export default function App() {
     } catch (e) {
       log(`Error: ${e.message}`, 'error')
       console.error('[CE] PDF upload error:', e)
+      // Clear any partial state on error
+      setPdfData(null)
+      setPdfName('')
+      setBlocks([])
+      setTextForLLM('')
+      setPageCount(0)
     }
   }, [])
 
